@@ -11,7 +11,7 @@ server {
     server_name tuffix-vm;
 
     location = /auth/register {
-        proxy_pass              http://localhost:5400;
+        proxy_pass              http://localhost:5000;
     }
 
     location / {
@@ -22,7 +22,7 @@ server {
 
     location = /auth/signin {
         internal;
-        proxy_pass              http://localhost:5400;
+        proxy_pass              http://localhost:5000;
         proxy_pass_request_body off;
         proxy_set_header        Content-Length "";
         proxy_set_header        X-Original-URI $request_uri;
