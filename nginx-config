@@ -1,7 +1,7 @@
 upstream backend-servers {
-    server  localhost:5000;
-    server  localhost:5001;
-    server  localhost:5002;
+    server  localhost:5100;
+    server  localhost:5200;
+    server  localhost:5300;
 }
 
 server {
@@ -11,7 +11,7 @@ server {
     server_name tuffix-vm;
 
     location = /auth/register {
-        proxy_pass              http://localhost:5100;
+        proxy_pass              http://localhost:5400;
     }
 
     location / {
@@ -22,7 +22,7 @@ server {
 
     location = /auth/signin {
         internal;
-        proxy_pass              http://localhost:5100;
+        proxy_pass              http://localhost:5400;
         proxy_pass_request_body off;
         proxy_set_header        Content-Length "";
         proxy_set_header        X-Original-URI $request_uri;

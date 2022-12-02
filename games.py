@@ -73,6 +73,11 @@ async def _get_db():
         await db.connect()
     return db
 
+@app.teardown_appcontext
+async def close_connection(exception):
+    db = getattr(g, "_database", None)
+    if db is not None:
+        await db.disconnect()
 
 async def _get_random_word():
     with open("./share/correct.json") as file:

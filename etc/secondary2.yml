@@ -1,0 +1,16 @@
+# Required. Path used to access LiteFS from your application.
+mount-dir: "./var/secondary2/mount"
+
+# Optional. Path to store underlying data.
+data-dir: "./var/secondary2/data"
+
+# http 
+http:
+# bind address to HTTP API server
+  addr: ":20204"
+
+# configure static leasing
+static:
+  primary: false
+  hostname: "localhost"
+  advertise-url: "http://tuffix-vm:20202"
