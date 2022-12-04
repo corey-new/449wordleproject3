@@ -1,14 +1,16 @@
-# Primary file
+# Secondary file
 
-mount-dir: "./var/primary/mount"
-data-dir: "./var/primary/data"
+mount-dir: "./var/secondary/mount"
+data-dir: "./var/secondary/data"
 
+http:
+  addr: ":20203"
 static:
   # Specifies that the current node is the primary.
-  primary: true
+  primary: false
 
   # Required. Hostname of the primary node.
   hostname: "tuffix-vm"
 
   # Required. The API URL of the primary node.
-  advertise-url: "http://tuffix-vm"
+  advertise-url: "http://tuffix-vm:20202"

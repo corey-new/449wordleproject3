@@ -3,9 +3,8 @@ import dataclasses
 import sqlite3
 import json
 import toml
-import secrets
-import hashlib
 import uuid
+import itertools
 
 from quart import Quart, g, request, abort, make_response
 from quart_schema import (
@@ -69,15 +68,36 @@ async def not_found(e):
 async def _get_db():
     db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = databases.Database(app.config["DATABASES"]["GAMES"])
+        db = g._database = databases.Database(app.config["DATABASES"]["GAMES"][0])
         await db.connect()
     return db
 
-@app.teardown_appcontext
-async def close_connection(exception):
-    db = getattr(g, "_database", None)
-    if db is not None:
-        await db.disconnect()
+
+def __get_read_db_str():
+    # use itertools.cycle() to choose a new GAMES database from wordle.toml
+    # read_db will be the connection string to the database
+    read_db_iter = getattr(g, "_read_db_iter", None)
+
+    if read_db_iter is None:
+        read_db_iter = g._read_db_iter = itertools.cycle(
+            app.config["DATABASES"]["GAMES"]
+        )
+
+    return next(read_db_iter)
+
+
+async def __get_read_db(read_db_str: str):
+
+    db = getattr(g, "_read_db", None)
+
+    if db != None:
+        db.disconnect()
+
+    db = g._read_db = databases.Database(read_db_str)
+    await db.connect()
+
+    return db
+
 
 async def _get_random_word():
     with open("./share/correct.json") as file:
@@ -179,7 +199,8 @@ async def create_game():
 @validate_response(Error, 404)
 async def get_game_state(game_id):
     """Retrieve the history of a game or the result if it is over."""
-    db = await _get_db()
+    read_db = await __get_read_db(__get_read_db_str())
+    app.logger.info(f"read_db: {str(read_db.url)}")
 
     # we need all rows in game_history for the game_id
     # join with game_states and games to get secret_word, status, and remaining_guesses
@@ -197,7 +218,7 @@ async def get_game_state(game_id):
         WHERE game_states.game_id = :game_id
         """
 
-    game_states = await db.fetch_all(
+    game_states = await read_db.fetch_all(
         query,
         values={"game_id": game_id},
     )
@@ -248,11 +269,13 @@ async def check_guess(data, game_id):
         abort(400, "Guess must be 5 letters long.")
 
     db = await _get_db()
+    read_db = await __get_read_db(__get_read_db_str())
+    app.logger.info(f"read_db: {str(read_db.url)}")
 
     # check if the user can access this game
     # TODO: can combine this SELECT with the one that fetches (secret_word, remaining_guesses)
     # TODO: to not have to query DB multiple times, but for now its ok
-    uname = await db.fetch_val(
+    uname = await read_db.fetch_val(
         "SELECT username FROM games WHERE game_id = :game_id",
         values={"game_id": game_id},
     )
@@ -261,7 +284,7 @@ async def check_guess(data, game_id):
 
     # perform lookup in db table "game_states" to check if game is in progress
     query = "SELECT game_states.status FROM game_states WHERE game_states.game_id = :game_id"
-    status = await db.fetch_val(
+    status = await read_db.fetch_val(
         query,
         values={"game_id": game_id},
     )
@@ -269,7 +292,7 @@ async def check_guess(data, game_id):
     # if finished, then return number of guesses and game status
     if status != "In Progress":
         query = "SELECT game_states.remaining_guesses FROM game_states WHERE game_states.game_id = :game_id"
-        guesses = await db.fetch_val(
+        guesses = await read_db.fetch_val(
             query,
             values={"game_id": game_id},
         )
@@ -278,7 +301,7 @@ async def check_guess(data, game_id):
 
     # perform lookup in db table "valid_words" to check if guess is valid
     query = "SELECT EXISTS(SELECT 1 FROM valid_words WHERE word = :word)"
-    valid_word = await db.fetch_val(
+    valid_word = await read_db.fetch_val(
         query,
         values={"word": guess},
     )
@@ -292,7 +315,7 @@ async def check_guess(data, game_id):
         FROM games INNER JOIN game_states ON games.game_id = game_states.game_id
         WHERE games.game_id = :game_id
     """
-    info = await db.fetch_one(
+    info = await read_db.fetch_one(
         query,
         {"game_id": game_id},
     )
@@ -358,7 +381,8 @@ async def check_guess(data, game_id):
 @app.route("/users/<string:username>", methods=["GET"])
 async def get_progress_game(username):
     """Retrieve the list of games in progress for a user with a given username."""
-    db = await _get_db()
+    read_db = await __get_read_db(__get_read_db_str())
+    app.logger.info(f"read_db: {str(read_db.url)}")
 
     if request.authorization.username != username:
         abort(401, "You cannot this user's games.")
@@ -368,7 +392,7 @@ async def get_progress_game(username):
         FROM games LEFT JOIN game_states ON games.game_id = game_states.game_id 
         WHERE username = :username AND game_states.status = 'In Progress'
         """
-    progress_game = await db.fetch_all(
+    progress_game = await read_db.fetch_all(
         query,
         values={"username": username},
     )

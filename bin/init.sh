@@ -1,8 +1,6 @@
 #!/bin/sh
 
-echo "Initializing databases..."
-sqlite3 ./var/users.db < ./share/users.sql
-sqlite3 ./var/games.db < ./share/games.sql
-echo "Successfully initialized database."
-echo "Populating games database with words..."
-python3 ./share/populate.py
+echo "Setting up file structure..."
+mkdir -p ./var/primary/mount && mkdir -p ./var/primary/data
+mkdir -p ./var/secondary/mount && mkdir -p ./var/secondary/data
+mkdir -p ./var/tertiary/mount && mkdir -p ./var/tertiary/data

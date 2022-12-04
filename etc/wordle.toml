@@ -1,0 +1,3 @@
+[DATABASES]
+USERS = 'sqlite+aiosqlite:///var/users.db'
+GAMES = ['sqlite+aiosqlite:///var/primary/mount/games.db', 'sqlite+aiosqlite:///var/secondary/mount/games.db', 'sqlite+aiosqlite:///var/tertiary/mount/games.db']
