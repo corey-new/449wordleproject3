@@ -1,13 +1,5 @@
 # 449wordleproject2
 
-## Team members:
-
-1. Clemente Solorio
-2. Corey New
-3. Yash Gandhi
-
-## Setup Tutorials
-
 ### Initialization Stage 
 
 - To configure nginx, copy the contents of the file `nginx-config` at the root of the project, into the file on your VM located at the path `/etc/nginx/sites-enabled/tutorial`
