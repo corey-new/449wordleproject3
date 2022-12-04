@@ -1,4 +1,4 @@
-users: hypercorn users --reload --debug --bind user.local.gd:$PORT --access-logfile - --error-logfile - --log-level DEBUG
+users: hypercorn users --reload --debug --bind users.local.gd:$PORT --access-logfile - --error-logfile - --log-level DEBUG
 
 primary: ./bin/litefs -config ./etc/primary.yml
 secondary1: ./bin/litefs -config ./etc/secondary1.yml
