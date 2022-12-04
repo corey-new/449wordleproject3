@@ -1,0 +1,4 @@
+[DATABASES]
+URL1 = 'sqlite+aiosqlite:///var/primary/mount/games.db'
+URL2 = 'sqlite+aiosqlite:///var/secondary1/mount/games.db'
+URL3 = 'sqlite+aiosqlite:///var/secondary2/mount/games.db'

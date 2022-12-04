@@ -1,14 +1,13 @@
-# Required. Path used to access LiteFS from your application.
 mount-dir: "./var/primary/mount"
 
-# Optional. Path to store underlying data.
 data-dir: "./var/primary/data"
 
-# supervisor / exec:
-# exec: "hypercorn games --reload --debug --bind games.local.gd:$PORT --access-logfile - --error-logfile - --log-level DEBUG"
+exec: "hypercorn games --reload --debug --bind games.local.gd:$PORT --access-logfile - --error-logfile - --log-level DEBUG"
 
-# configure static leasing
+http:
+  addr: ":5100"
+
 static:
   primary: true
-  hostname: "localhost"
-  advertise-url: "http://tuffix-vm:20202"
+  hostname: "tuffix-vm"
+  advertise-url: "http://localhost:5100"

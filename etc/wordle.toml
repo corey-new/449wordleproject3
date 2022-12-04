@@ -1,3 +1,0 @@
-[DATABASES]
-USERS = 'sqlite+aiosqlite:///var/users.db'
-GAMES = 'sqlite+aiosqlite:///var/games.db'
